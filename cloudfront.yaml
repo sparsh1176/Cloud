@@ -1,0 +1,89 @@
+Resources:
+  # LoadBalancer:
+  #   Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  #   Properties:
+  #     Name: test
+  #     Subnets: ["subnet-095d260108d41edb9","subnet-04d6cac54be1e2dbc"]
+  #     SecurityGroups:
+  #       - sg-012ca3386590b1185
+  #     Tags:
+  #       - Key: Name
+  #         Value: test
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: test-default
+      VpcId: vpc-04e9fed82e8bb19fb
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: '20'
+      Targets:
+        - Id:
+            Ref: LaunchingServer
+          Port: 80
+      UnhealthyThresholdCount: 3
+
+  # LoadBalancerListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties:
+  #     LoadBalancerArn: !Ref LoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
+  #     DefaultActions:
+  #       - Type: forward
+  #         TargetGroupArn: !Ref TargetGroup
+
+  LaunchingServer:
+
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType:  't2.micro'
+      SecurityGroups: [!Ref 'SecurityGroup']
+      KeyName: internal-aws
+      ImageId: ami-0e472ba40eb589f49
+
+  SecurityGroup:
+
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 173.212.64.234/32
+
+  # S3Bucket:
+
+  #   Type: AWS::S3::Bucket
+  #   Description: Creating Amazon S3 bucket from CloudFormation
+  #   Properties:
+  #     BucketName: lambda-test-sparsh
+  #     VersioningConfiguration:
+  #       Status: Enabled
+
+  lambda:
+
+    Type: AWS::Lambda::Function
+    Properties: 
+      Code: 
+        S3Bucket: lambda-test-sparsh
+        S3Key: "lambda_handler.py.zip"
+      Description: String
+      FunctionName: test
+      MemorySize: 256
+      Timeout: 15
+      Handler: lambda_handler
+      Role: arn:aws:iam::050670689537:role/service-role/test-role-sgqdmsso
+      Runtime: python3.9
+      # VpcConfig: 
+      #   VpcConfig
+
+
+
+
+    
+
